@@ -1,0 +1,150 @@
+create database  key_prim
+use key_prim
+
+# Here we are learning about the primary Key and foreign key. And how to make relations b/w primary and foreign key.
+create table ineuron(
+course_id int not null,
+course_name varchar(60),
+course_status varchar(60),
+num_of_enroll int,
+primary key(course_id)) # >> primary key can not have a duplicate values
+# we can not drop the primary key, once it established relation with foreign key. But we can do before that. same goes with the table as well
+# But we can drop the child table(foreign key tables).
+
+insert into ineuron values (01, 'fsda', 'active', 100)
+select * from ineuron
+
+-- Here we had created one to many relation 
+create table student_ineuron(
+student_id int,
+course_name varchar(60),
+student_mail varchar(60),
+student_status varchar(60),
+course_id1 int,
+foreign key(course_id1) references ineuron(course_id)) # Here we are establishing the relation b/w foreign key and primary key
+# primary key and foreign key can be same or different, there is no problem with that.
+
+# The below query will give error, because here course id is 05. but we dont have cousre_id 05
+insert into student_ineuron values(101 , 'fsda','test@gmail.com','active',05)
+
+# this query will not give any error, because we have course_id 01 in our database
+insert into student_ineuron values(101 , 'fsda','test@gmail.com','active',01)
+# Here in foreign key we can insert duplicate data without any problem
+insert into student_ineuron values(101 , 'fsda','test@gmail.com','active',01)
+# With the above queries, we can say here the relationship is one to many. we can build one to one as well by changing foreign key with primary key.
+select * from student_ineuron
+
+-- Here we are created one to many relation.
+create table payments(
+course_id int,
+course_name varchar(60),
+course_live_status varchar(60),
+course_launch_date varchar(60),
+foreign key(course_id) references ineuron(course_id))
+
+insert into payments values (01, 'fsda', 'not-active', '21 aug')
+
+-- Here we had created one to one relation. 
+create table class(
+course_id int,
+course_name varchar(60),
+class_topic varchar(60),
+duration int,
+primary key(course_id),
+foreign key(course_id) references ineuron(course_id))
+
+insert into class values ()
+
+-- Here we cannot alter or drop the parent table or primary key, because it has relationship with child table.
+-- if we want to alter, first we have to drop the child table, we go to the parent tables
+alter table ineuron drop primary key
+drop ineuron
+-- The above queries will give errors. To make changes, we have to start from child table.
+
+-- Let's try creating table with primary key which is combination of two columns
+create table test(
+ID int not null,
+`name` varchar(30),
+email_id varchar(60),
+mobile_no varchar(13),
+address varchar(60))
+-- Here we had created table without any primary key.
+-- now let's add primary key to the existing table.
+alter table test add primary key(ID)
+-- Here we have added one primary key
+-- To make two columns a primary key, first we have to delete existing primary key. So, let's do it.
+alter table test drop primary key
+-- Now, let's create primary key with combination of two columns.
+alter table test add constraint test_key primary key(ID, email_id)
+-- Now, we can check the EER diagram to check the primary key in data modeling diagram.
+
+-- Let's create another tables and with primary and foreign key relationships.
+create table parent(
+ID int not null,
+primary key(ID))
+
+create table child(
+ID int not null,
+parent_id int not null,
+foreign key(parent_id) references parent(ID))
+
+insert into parent values(1),(2)
+insert into child values(1,1),(2,2)
+select * from parent
+select * from child
+
+-- Now let's try deleting the values from tables
+delete from parent where ID = 2
+-- If we run the above query, it will give error.
+-- We can not delete the values from parent table as they associated with child data.
+-- SO, first we have to delete from child and later we can delete from parent. Let's do that.
+# while running below 2 update and set queries I got error saying I am using safe mode, to avoid that we are using below query.
+SET SQL_SAFE_UPDATES = 0;
+delete from child where ID = 2
+delete from parent where ID = 2
+-- Now, we are able to delete the values
+-- But to avoid doing this all the times, there is another method, where we dont need to update child to alter the parent table.
+-- For doing this, there is something we have to give while creaing child table itself.
+-- so, first lets delete the child table and create again.
+drop table child
+
+create table child(
+ID int not null,
+parent_id int not null,
+foreign key(parent_id) references parent(ID) on delete cascade)
+
+insert into parent values(2)
+insert into child values(1,1),(2,2)
+select * from parent
+select * from child
+-- Now, let's try deleting the parent values with deleting the child values.
+delete from parent where ID = 2
+select * from parent
+select * from child
+-- It worked, we were able to delete without any problem. so, this will automatically delete in child as well.
+
+-- In the same way, we can update as well. Let's try with update.
+create table parent2(
+ID int not null,
+primary key(ID))
+
+insert into parent2 values(1),(2)
+
+create table child2(
+ID int not null,
+parent_id int not null,
+foreign key(parent_id) references parent2(ID) on update cascade)
+
+insert into child2 values(1,1),(2,2)
+
+-- Now, lets do update in parent and the same will reflact in child as well.
+update parent2 set ID = 3 where ID = 2
+select * from parent2
+select * from child2
+-- As you can it got updated without any errors.
+
+
+
+
+
+
